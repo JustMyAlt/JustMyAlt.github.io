@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="script.js"></script>
+    </head>
+
+    <body onload="init()", style="background-color:#464646">
+        <h1 style="color: #dadada">
+            Offline Bearable Insights (Only factors)
+        </h1>
+        <p style="color: #dadada">
+            Upload your Bearable records for free insights (No premium needed!). Data is processed completely locally. <br>
+            To get started, go onto Bearable -> More (bottom right) -> Data & Security, My Data -> Export my data -> All time<br>
+            Finally, email or whatever the generated .csv to yourself and upload here.
+        </p>
+
+        <input id="fileInput" type="file" name="file" style="color: #dadada"/>
+        <div style='overflow: hidden;'>
+            <ul id="factors" style="list-style:none;float:left;width: 300px"></ul>
+            <ul id="scores" style="list-style:none;"></ul>
+        </div>
+        
+        <p id='shootmyshot' style='visibility: hidden; color: #dadada' >
+            If your name rhymes with u/HeroJournal or James, consider turning a blind eye to this site, specifically please dont remove the export function because of this<br>
+            (ps Kinda annoyed by your ads on r/dataisbeautiful, that's what got this ball rolling, love the app otherwise)<br><br>
+            If you use the site often and want extra features, go buy yourself a coffee cause im done. 
+        </p>
+    </body>
+</html>
+
+<script>
+
+// If you are a stackoverflow god, your answer may be in here. Thank you for thinking for me.
+
+function init() {
+    document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
+}
+
+function handleFileSelect(event) {
+    const reader = new FileReader();
+    reader.onload = handleFileLoad;
+    reader.readAsText(event.target.files[0]);
+}
+
+function getStandardDeviation(array) {
+    const n = array.length;
+    const mean = array.reduce((a, b) => a + b) / n;
+    return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
+}
+
+function getAverage(array) {
+    var sum = 0;
+    for( var i = 0; i < array.length; i++ ){
+        sum += parseInt( array[i], 10 );
+    }
+    var avg = sum/array.length;
+    return avg;
+}
+
+function getKeyByValue(object, value) {
+    return Object.keys(object).find(key => object[key] === value);
+}
+
+function sortFloat(a,b) { 
+    return a - b; 
+}
+
+function appendToUL(ul_obj, text, is_title=false) {
+    let li = document.createElement("li");
+    li.innerText = text;
+    if (is_title) {
+        li.style.fontSize = 'larger';
+        li.style.fontWeight  = 'bolder';
+        li.style.paddingBottom   = '5px';
+    }
+    li.style.color = '#dadada';
+    ul_obj.appendChild(li);
+}
+
+function handleFileLoad(event) {
+    var data = {};
+    const raw_text_data = event.target.result.split("\n");
+    
+    for (let i=0; i<raw_text_data.length; i++) {
+        var line = raw_text_data[i];
+
+        // A bit ugly, but gets mood (int) associated for each factor for each day 
+
+        if (line.includes("Mood")) {
+            var mood = parseFloat(line.split(',')[4].replace('"', ''));
+            
+            var factors = raw_text_data[i+1].split(',')[5].split('|');
+            if (factors.length >=2) {
+                for (let j=0; j<factors.length; j++) {
+                    var factor = factors[j]
+
+                    // TODO String cleaning, makes final factors not have spacing between words
+                    factor = factor.replaceAll(" ", "");
+                    factor = factor.replaceAll('"', '');
+
+                    if (!(factor in data)) {
+                        data[factor] = [];
+                    }
+
+                    data[factor].push(mood);
+
+                };
+
+            }; 
+
+        };
+    };
+
+    // shown is used to prevent repeats that happen because i didnt pray to the programming gods before i started
+    var shown = [];
+
+    var calculated = {};
+    var scores = [];
+    
+    for (factor in data) {
+        var values = data[factor];
+
+        // Score is student's t-test. I've finally used it outside of highschool. Ignore the +0.01, 
+        // the order is still maintained relatively well
+        var score = getAverage(values) / ((getStandardDeviation(values)+0.01) / (values.length**(0.5)));
+
+        score = score.toFixed(0);
+
+        if (!(factor in calculated)) {
+            calculated[factor] = score;  
+            scores.push(score);
+        };
+    };
+
+    
+    let list_factors = document.getElementById("factors");
+    let list_scores = document.getElementById("scores");
+    var scores = scores.sort(sortFloat).reverse();
+
+    appendToUL(list_factors, 'Factor', true);
+    appendToUL(list_scores, 'Scores', true);
+
+    for (l=0;l<scores.length;l++){
+        var factor = getKeyByValue(calculated, scores[l]);
+
+        if (! (shown.includes(factor))) {
+            shown.push(factor);
+            appendToUL(list_factors, factor);
+            appendToUL(list_scores, scores[l]);
+        }
+
+    };
+
+    document.getElementById("shootmyshot").style.visibility = "visible";
+
+}
+</script>
