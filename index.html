@@ -23,7 +23,7 @@
         <p id='shootmyshot' style='visibility: hidden; color: #dadada' >
             If your name rhymes with u/HeroJournal or James, consider turning a blind eye to this site, specifically please dont remove the export function because of this<br>
             (ps Kinda annoyed by your ads on r/dataisbeautiful, that's what got this ball rolling, love the app otherwise)<br><br>
-            If you use the site often and want extra features, go buy yourself a coffee (or the premium version) cause im done. 
+            If you use the site often and want extra features, go buy yourself a coffee cause im done. 
         </p>
     </body>
 </html>
@@ -87,9 +87,24 @@ function handleFileLoad(event) {
         // A bit ugly, but gets mood (int) associated for each factor for each day 
 
         if (line.includes("Mood")) {
-            var mood = parseFloat(line.split(',')[4].replace('"', ''));
+            var mood = parseFloat(line.split(',')[4].replaceAll('"', ''));
+            var date = line.split(',')[0].replaceAll('"', '');
+            var factors = []
+
+            console.log(date)
+
+            for (n=i+1; n<raw_text_data.length-i; n++){
+                if ( raw_text_data[n].includes(date) & raw_text_data[n].includes('Factors') ) {
+                    var f_list = raw_text_data[n].split(',')[5].split('|')
+
+                    for (m=0; m<f_list.length;m++){
+                        factors.push(f_list[m])
+                    }
+
+                };
+            };
             
-            var factors = raw_text_data[i+1].split(',')[5].split('|');
+
             if (factors.length >=2) {
                 for (let j=0; j<factors.length; j++) {
                     var factor = factors[j]
