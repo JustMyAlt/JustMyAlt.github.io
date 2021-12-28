@@ -1,4 +1,0 @@
-This is a Brave Rewards publisher verification file.
-
-Domain: justmyalt.github.io
-Token: a83ee0404d25c12785dddf526a7cf3145f1aac786b66c83f72f95788ad1f6227
