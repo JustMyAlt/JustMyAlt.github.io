@@ -37,6 +37,12 @@ function init() {
 }
 
 function handleFileSelect(event) {
+
+    var list_factors = document.getElementById('factors');
+    list_factors.innerHTML = '';
+    var list_scores = document.getElementById('scores');
+    list_scores.innerHTML = '';
+
     const reader = new FileReader();
     reader.onload = handleFileLoad;
     reader.readAsText(event.target.files[0]);
